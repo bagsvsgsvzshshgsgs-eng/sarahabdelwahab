@@ -21,7 +21,9 @@ export const loginAdmin = async (username, password) => {
       // Newer Firebase projects use 'auth/invalid-credential' instead of 'auth/user-not-found'
       if (e.message === 'Admin profile not found.' || e.code === 'auth/user-not-found' || e.code === 'auth/invalid-credential') {
         try {
-          user = await bootstrapAdmin(email, password, cleanUsername === 'sarahabdelwahab' ? 'Sarah Abdelwahab' : username)
+          const defaultNames = ['sarahabdelwahab', 'admin', 'kamel']
+          const displayName = defaultNames.includes(cleanUsername) ? 'Sarah Abdelwahab' : username
+          user = await bootstrapAdmin(email, password, displayName)
           user.role = 'admin'
         } catch (bootstrapErr) {
           if (bootstrapErr.code === 'auth/email-already-in-use') {
