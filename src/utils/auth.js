@@ -7,10 +7,11 @@ import { signInAdmin, signInStudent, bootstrapAdmin } from './firebaseAuth'
 // Admin login — first-time auto-creates the Firebase Auth account
 export const loginAdmin = async (username, password) => {
   try {
-    // Admin email is stored as username@sarahapp.edu for consistency,
-    // OR as a real email if the admin typed one.
+    // Admin email is stored as username@sarahapp.edu for consistency.
+    // Handles spaces: e.g. "sarah abdelwahab" -> "sarahabdelwahab@sarahapp.edu"
     const isEmail = username.includes('@')
-    const email = isEmail ? username : `${username.toLowerCase().trim()}@sarahapp.edu`
+    const cleanUsername = username.toLowerCase().trim().replace(/\s+/g, '')
+    const email = isEmail ? username : `${cleanUsername}@sarahapp.edu`
 
     let user
     try {
@@ -20,7 +21,7 @@ export const loginAdmin = async (username, password) => {
       // Newer Firebase projects use 'auth/invalid-credential' instead of 'auth/user-not-found'
       if (e.message === 'Admin profile not found.' || e.code === 'auth/user-not-found' || e.code === 'auth/invalid-credential') {
         try {
-          user = await bootstrapAdmin(email, password, username === 'kamel' ? 'Sarah Abdelwahab' : username)
+          user = await bootstrapAdmin(email, password, cleanUsername === 'sarahabdelwahab' ? 'Sarah Abdelwahab' : username)
           user.role = 'admin'
         } catch (bootstrapErr) {
           if (bootstrapErr.code === 'auth/email-already-in-use') {

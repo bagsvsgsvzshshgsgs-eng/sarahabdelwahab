@@ -156,7 +156,7 @@ export const AdminLogin = () => {
                 id="admin-username"
                 className="form-input"
                 type="text"
-                placeholder="Admin username (e.g. kamel)"
+                placeholder="Admin username (e.g. sarahabdelwahab)"
                 value={username}
                 onChange={e => { setUsername(e.target.value); setError('') }}
                 required
