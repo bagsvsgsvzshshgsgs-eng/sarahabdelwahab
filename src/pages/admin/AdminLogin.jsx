@@ -3,23 +3,22 @@ import { useNavigate, Link } from 'react-router-dom'
 import { useAppContext } from '../../contexts/AppContext'
 import { loginAdmin } from '../../utils/auth'
 
-
-
 export const AdminLogin = () => {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [showPass, setShowPass] = useState(false)
   const { login } = useAppContext()
   const navigate = useNavigate()
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
     setLoading(true)
 
-    setTimeout(() => {
-      const res = loginAdmin(username, password)
+    try {
+      const res = await loginAdmin(username, password)
       if (res.success) {
         login(res.user)
         navigate('/admin/dashboard')
@@ -27,12 +26,14 @@ export const AdminLogin = () => {
         setError(res.message)
         setLoading(false)
       }
-    }, 600)
+    } catch (err) {
+      setError('An authentication error occurred. Please check your connection.')
+      setLoading(false)
+    }
   }
 
   return (
     <div className="split-layout">
-      {/* SCOPED CSS FOR THIS PAGE */}
       <style>{`
         .login-card {
           width: 100%;
@@ -91,25 +92,21 @@ export const AdminLogin = () => {
             margin-bottom: 24px;
             text-align: center;
           }
-          .split-left {
-            padding: 60px 24px 40px;
-          }
-          .split-left h1 {
-            font-size: 2.25rem !important;
-          }
+          .split-left { padding: 60px 24px 40px; }
+          .split-left h1 { font-size: 2.25rem !important; }
         }
       `}</style>
-      
+
       {/* LEFT COLUMN */}
       <div className="split-left">
         <div className="deco-blob desktop-only" style={{ top: '-100px', right: '-100px' }}></div>
         <div className="deco-blob desktop-only" style={{ bottom: '-150px', left: '-50px' }}></div>
-        
+
         <div className="left-content" style={{ display: 'flex', flexDirection: 'column' }}>
-          <div className="glass-badge" style={{ marginBottom: '24px' }}>V2.0 SaaS Platform</div>
-          
+          <div className="glass-badge" style={{ marginBottom: '24px' }}>V2.0 — Firebase Powered</div>
+
           <h1 style={{ fontSize: '3.5rem', lineHeight: '1.1', fontWeight: '800', marginBottom: '16px' }}>
-            Elevate Your <br /> 
+            Elevate Your <br />
             <span style={{ color: '#60a5fa' }}>Teaching Experience</span>
           </h1>
 
@@ -120,13 +117,13 @@ export const AdminLogin = () => {
           <div className="desktop-only" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
             <div style={{ padding: '24px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '20px', backdropFilter: 'blur(10px)' }}>
               <div style={{ fontSize: '1.5rem', marginBottom: '4px' }}>🛡️</div>
-              <p style={{ fontSize: '0.9rem', fontWeight: '700', marginBottom: '4px' }}>Secure Access</p>
-              <p style={{ fontSize: '0.75rem', color: '#64748b' }}>Enterprise grade</p>
+              <p style={{ fontSize: '0.9rem', fontWeight: '700', marginBottom: '4px' }}>Firebase Auth</p>
+              <p style={{ fontSize: '0.75rem', color: '#64748b' }}>Enterprise-grade security</p>
             </div>
             <div style={{ padding: '24px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '20px', backdropFilter: 'blur(10px)' }}>
-              <div style={{ fontSize: '1.5rem', marginBottom: '4px' }}>⚡</div>
-              <p style={{ fontSize: '0.9rem', fontWeight: '700', marginBottom: '4px' }}>Real-time Data</p>
-              <p style={{ fontSize: '0.75rem', color: '#64748b' }}>Instant sync</p>
+              <div style={{ fontSize: '1.5rem', marginBottom: '4px' }}>📊</div>
+              <p style={{ fontSize: '0.9rem', fontWeight: '700', marginBottom: '4px' }}>Track Everything</p>
+              <p style={{ fontSize: '0.75rem', color: '#64748b' }}>Logins & submissions</p>
             </div>
           </div>
         </div>
@@ -142,7 +139,7 @@ export const AdminLogin = () => {
         <div className="login-card">
           <div style={{ textAlign: 'center', marginBottom: '40px' }}>
             <div style={{ display: 'inline-flex', marginBottom: '20px' }}>
-               <img src="/sarah-profile.jpg" alt="Sarah Abdelwahab" style={{ width: '80px', height: '120px', borderRadius: '16px', objectFit: 'cover', boxShadow: '0 8px 16px rgba(0,0,0,0.1)' }} />
+              <img src="/sarah-profile.jpg" alt="Sarah Abdelwahab" style={{ width: '80px', height: '120px', borderRadius: '16px', objectFit: 'cover', boxShadow: '0 8px 16px rgba(0,0,0,0.1)' }} />
             </div>
             <h2 style={{ fontSize: '1.75rem', fontWeight: '800', color: 'var(--primary)', marginBottom: '4px' }}>
               Welcome Back
@@ -154,32 +151,42 @@ export const AdminLogin = () => {
 
           <form onSubmit={handleSubmit}>
             <div className="form-group" style={{ marginBottom: '20px' }}>
-              <label className="form-label-premium" htmlFor="username">Username</label>
+              <label className="form-label-premium" htmlFor="admin-username">Username</label>
               <input
-                id="username"
+                id="admin-username"
                 className="form-input"
                 type="text"
-                placeholder="Admin username"
+                placeholder="Admin username (e.g. kamel)"
                 value={username}
                 onChange={e => { setUsername(e.target.value); setError('') }}
-                required 
+                required
                 autoFocus
                 style={{ background: '#f8fafc' }}
               />
             </div>
 
             <div className="form-group" style={{ marginBottom: '28px' }}>
-              <label className="form-label-premium" htmlFor="password">Password</label>
-              <input
-                id="password"
-                className="form-input"
-                type="password"
-                placeholder="Personal access key"
-                value={password}
-                onChange={e => { setPassword(e.target.value); setError('') }}
-                required
-                style={{ background: '#f8fafc' }}
-              />
+              <label className="form-label-premium" htmlFor="admin-password">Password</label>
+              <div style={{ position: 'relative' }}>
+                <input
+                  id="admin-password"
+                  className="form-input"
+                  type={showPass ? 'text' : 'password'}
+                  placeholder="Personal access key"
+                  value={password}
+                  onChange={e => { setPassword(e.target.value); setError('') }}
+                  style={{ paddingRight: '48px', background: '#f8fafc' }}
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPass(v => !v)}
+                  tabIndex="-1"
+                  style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px', color: '#94a3b8', padding: '4px' }}
+                >
+                  {showPass ? '🙈' : '👁️'}
+                </button>
+              </div>
             </div>
 
             {error && (
@@ -187,7 +194,7 @@ export const AdminLogin = () => {
                 <span>⚠️</span> {error}
               </div>
             )}
-            
+
             <button type="submit" className="btn btn-primary" style={{ width: '100%', height: '52px' }} disabled={loading || !username || !password}>
               {loading ? 'Authenticating...' : 'Sign In to Dashboard'}
             </button>

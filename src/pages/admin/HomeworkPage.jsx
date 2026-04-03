@@ -4,21 +4,32 @@ import { getHomework, deleteHomework, saveHomework } from '../../utils/storage'
 
 export const HomeworkPage = () => {
   const [homeworks, setHomeworks] = useState([])
+  const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
 
-  const loadData = () => setHomeworks(getHomework())
-  useEffect(() => loadData(), [])
+  const loadData = async () => {
+    setLoading(true)
+    const data = await getHomework()
+    setHomeworks(data)
+    setLoading(false)
+  }
 
-  const handleDelete = (id) => {
+  useEffect(() => {
+    loadData()
+  }, [])
+
+  const handleDelete = async (id) => {
     if (window.confirm('Are you sure? This will delete the exam and all results.')) {
-      deleteHomework(id)
-      loadData()
+      setLoading(true)
+      await deleteHomework(id)
+      await loadData()
     }
   }
 
-  const togglePublish = (hw) => {
-    saveHomework({ ...hw, published: !hw.published })
-    loadData()
+  const togglePublish = async (hw) => {
+    setLoading(true)
+    await saveHomework({ ...hw, published: !hw.published })
+    await loadData()
   }
 
   return (

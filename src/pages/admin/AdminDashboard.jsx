@@ -8,37 +8,39 @@ export const AdminDashboard = () => {
   const [students, setStudents] = useState([])
 
   useEffect(() => {
-    const allStudents = getStudents()
-    const allResults = getResults()
-    const allHomework = getPublished()
-    
-    // Enrich results with student and homework info
-    const enrichedResults = allResults.map(res => {
-      const student = allStudents.find(s => s.id === res.studentId)
-      const homework = allHomework.find(hw => hw.id === res.homeworkId)
-      return {
-        ...res,
-        studentName: student ? student.name : 'Unknown Student',
-        quizTitle: homework ? homework.title : 'Deleted Exam'
+    (async () => {
+      const allStudents = await getStudents()
+      const allResults = await getResults()
+      const allHomework = await getPublished()
+      
+      // Enrich results with student and homework info
+      const enrichedResults = allResults.map(res => {
+        const student = allStudents.find(s => s.id === res.studentId)
+        const homework = allHomework.find(hw => hw.id === res.homeworkId)
+        return {
+          ...res,
+          studentName: student ? student.name : 'Unknown Student',
+          quizTitle: homework ? homework.title : 'Deleted Exam'
+        }
+      })
+
+      // Calculate Average
+      let avg = 0
+      if (allResults.length > 0) {
+        const sum = allResults.reduce((acc, r) => acc + r.percentage, 0)
+        avg = Math.round(sum / allResults.length)
       }
-    })
 
-    // Calculate Average
-    let avg = 0
-    if (allResults.length > 0) {
-      const sum = allResults.reduce((acc, r) => acc + r.percentage, 0)
-      avg = Math.round(sum / allResults.length)
-    }
-
-    setStats({
-      students: allStudents.length,
-      published: allHomework.length,
-      results: allResults.length,
-      avgScore: avg
-    })
-    
-    setStudents(allStudents.slice(0, 5))
-    setRecentResults([...enrichedResults].sort((a,b) => new Date(b.submittedAt) - new Date(a.submittedAt)).slice(0, 5))
+      setStats({
+        students: allStudents.length,
+        published: allHomework.length,
+        results: allResults.length,
+        avgScore: avg
+      })
+      
+      setStudents(allStudents.slice(0, 5))
+      setRecentResults([...enrichedResults].sort((a,b) => new Date(b.submittedAt) - new Date(a.submittedAt)).slice(0, 5))
+    })()
   }, [])
 
   return (

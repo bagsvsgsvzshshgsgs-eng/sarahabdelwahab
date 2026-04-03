@@ -1,19 +1,70 @@
-import { getUsers } from './storage'
+/**
+ * auth.js — thin wrappers used by login pages.
+ * All heavy lifting is in firebaseAuth.js.
+ */
+import { signInAdmin, signInStudent, bootstrapAdmin } from './firebaseAuth'
 
-export const loginAdmin = (username, password) => {
-  const users = getUsers()
-  const user = users.find(u => u.role === 'admin' && u.username === username && u.password === password)
-  if (user) {
-    return { success: true, user: { id: user.id, role: user.role, name: user.name } }
+// Admin login — first-time auto-creates the Firebase Auth account
+export const loginAdmin = async (username, password) => {
+  try {
+    // Admin email is stored as username@sarahapp.edu for consistency,
+    // OR as a real email if the admin typed one.
+    const isEmail = username.includes('@')
+    const email = isEmail ? username : `${username.toLowerCase().trim()}@sarahapp.edu`
+
+    let user
+    try {
+      user = await signInAdmin(email, password)
+    } catch (e) {
+      // If admin profile doesn't exist yet, bootstrap it (first run).
+      // Newer Firebase projects use 'auth/invalid-credential' instead of 'auth/user-not-found'
+      if (e.message === 'Admin profile not found.' || e.code === 'auth/user-not-found' || e.code === 'auth/invalid-credential') {
+        try {
+          user = await bootstrapAdmin(email, password, username === 'kamel' ? 'Sarah Abdelwahab' : username)
+          user.role = 'admin'
+        } catch (bootstrapErr) {
+          if (bootstrapErr.code === 'auth/email-already-in-use') {
+            // It was actually just a wrong password for an existing account
+            throw e 
+          }
+          throw bootstrapErr
+        }
+      } else {
+        throw e
+      }
+    }
+    return { success: true, user }
+  } catch (err) {
+    const msg = mapFirebaseError(err)
+    return { success: false, message: msg }
   }
-  return { success: false, message: 'Invalid admin credentials' }
 }
 
-export const loginStudent = (username, password) => {
-  const users = getUsers()
-  const user = users.find(u => u.role === 'student' && u.username === username.toLowerCase().trim() && u.password === password)
-  if (user) {
-    return { success: true, user: { id: user.id, role: user.role, name: user.name } }
+// Student login — username is converted to internal @sarahapp.edu email
+export const loginStudent = async (username, password) => {
+  try {
+    const user = await signInStudent(username, password)
+    return { success: true, user }
+  } catch (err) {
+    const msg = mapFirebaseError(err)
+    return { success: false, message: msg }
   }
-  return { success: false, message: 'Invalid student credentials' }
+}
+
+// Map Firebase Auth error codes to friendly messages
+const mapFirebaseError = (err) => {
+  switch (err.code) {
+    case 'auth/user-not-found':
+    case 'auth/invalid-credential':
+    case 'auth/wrong-password':
+      return 'Invalid username or password. Please try again.'
+    case 'auth/too-many-requests':
+      return 'Too many failed attempts. Please wait a moment and try again.'
+    case 'auth/network-request-failed':
+      return 'Network error. Please check your internet connection.'
+    case 'auth/invalid-email':
+      return 'Invalid username format.'
+    default:
+      return err.message || 'An authentication error occurred.'
+  }
 }

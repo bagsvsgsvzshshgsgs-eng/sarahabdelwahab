@@ -7,22 +7,27 @@ export const HomeworkForm = () => {
   const navigate = useNavigate()
   const isEditing = !!id
 
-  const [formData, setFormData] = useState({ title: '', description: '', published: false })
+  const [loading, setLoading] = useState(true)
+  const [formData, setFormData] = useState({ title: '', description: '', published: false, grade: 'All' })
   const [questions, setQuestions] = useState([])
   const [error, setError] = useState('')
 
   useEffect(() => {
-    if (isEditing) {
-      const hw = findHomework(id)
-      if (hw) {
-        setFormData({ title: hw.title, description: hw.description, published: hw.published })
-        setQuestions(hw.questions || [])
+    (async () => {
+      setLoading(true)
+      if (isEditing) {
+        const hw = await findHomework(id)
+        if (hw) {
+          setFormData({ title: hw.title, description: hw.description, published: hw.published, grade: hw.targetGrade || 'All' })
+          setQuestions(hw.questions || [])
+        } else {
+          navigate('/admin/homework')
+        }
       } else {
-        navigate('/admin/homework')
+        addQuestion()
       }
-    } else {
-      addQuestion()
-    }
+      setLoading(false)
+    })()
   }, [id, navigate, isEditing])
 
   const addQuestion = () => {
@@ -50,7 +55,7 @@ export const HomeworkForm = () => {
     setQuestions(q)
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     if (!formData.title) return setError('Title is required.')
     if (questions.length === 0) return setError('Add at least one question.')
@@ -61,16 +66,20 @@ export const HomeworkForm = () => {
       if (q.choices.some(c => !c)) return setError(`All 4 choices for Q${i + 1} are required.`)
     }
 
+    setLoading(true)
+    const existingHw = isEditing ? await findHomework(id) : null
+    
     const hw = {
       id: isEditing ? id : `hw-${Date.now()}`,
       title: formData.title,
       description: formData.description,
+      targetGrade: formData.grade || 'All',
       published: formData.published,
-      createdAt: isEditing ? findHomework(id).createdAt : new Date().toISOString(),
+      createdAt: isEditing ? existingHw?.createdAt : new Date().toISOString(),
       questions
     }
 
-    saveHomework(hw)
+    await saveHomework(hw)
     navigate('/admin/homework')
   }
 
@@ -97,6 +106,23 @@ export const HomeworkForm = () => {
             <label className="form-label">Description / Instructions</label>
             <textarea className="form-input" value={formData.description} onChange={e => setFormData({ ...formData, description: e.target.value })} placeholder="Instructions for students" rows={3} style={{ resize: 'vertical' }} />
           </div>
+          
+          <div className="form-group">
+            <label className="form-label">Target Grade Level</label>
+            <select className="form-input select-input" value={formData.grade} onChange={e => setFormData({ ...formData, grade: e.target.value })}>
+              <option value="All">All Students</option>
+              <option value="Primary 1">Primary 1</option>
+              <option value="Primary 2">Primary 2</option>
+              <option value="Primary 3">Primary 3</option>
+              <option value="Primary 4">Primary 4</option>
+              <option value="Primary 5">Primary 5</option>
+              <option value="Primary 6">Primary 6</option>
+              <option value="Secondary 1">Secondary 1</option>
+              <option value="Secondary 2">Secondary 2</option>
+              <option value="Secondary 3">Secondary 3</option>
+            </select>
+          </div>
+
           <label className="publish-toggle">
             <input type="checkbox" checked={formData.published} onChange={e => setFormData({ ...formData, published: e.target.checked })} className="toggle-input" />
             <div className="toggle-content">

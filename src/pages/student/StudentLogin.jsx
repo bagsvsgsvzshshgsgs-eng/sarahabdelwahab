@@ -3,8 +3,6 @@ import { useNavigate, Link } from 'react-router-dom'
 import { useAppContext } from '../../contexts/AppContext'
 import { loginStudent } from '../../utils/auth'
 
-
-
 export const StudentLogin = () => {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
@@ -14,13 +12,13 @@ export const StudentLogin = () => {
   const { login } = useAppContext()
   const navigate = useNavigate()
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
     setLoading(true)
 
-    setTimeout(() => {
-      const res = loginStudent(username, password)
+    try {
+      const res = await loginStudent(username.trim(), password)
       if (res.success) {
         login(res.user)
         navigate('/student/home')
@@ -28,12 +26,14 @@ export const StudentLogin = () => {
         setError(res.message)
         setLoading(false)
       }
-    }, 700)
+    } catch (err) {
+      setError('A connection error occurred. Please try again.')
+      setLoading(false)
+    }
   }
 
   return (
     <div className="split-layout">
-      {/* SCOPED CSS FOR THIS PAGE */}
       <style>{`
         .login-card {
           width: 100%;
@@ -48,13 +48,13 @@ export const StudentLogin = () => {
 
         @keyframes slideUp {
           from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
+          to   { opacity: 1; transform: translateY(0); }
         }
 
         .deco-blob {
           position: absolute;
           width: 500px; height: 500px;
-          background: radial-gradient(circle, rgba(37, 99, 235, 0.1) 0%, transparent 70%);
+          background: radial-gradient(circle, rgba(37,99,235,0.1) 0%, transparent 70%);
           border-radius: 50%;
           z-index: 0;
         }
@@ -74,8 +74,8 @@ export const StudentLogin = () => {
         }
 
         .glass-badge {
-          background: rgba(255, 255, 255, 0.1);
-          border: 1px solid rgba(255, 255, 255, 0.2);
+          background: rgba(255,255,255,0.1);
+          border: 1px solid rgba(255,255,255,0.2);
           backdrop-filter: blur(8px);
           padding: 6px 12px;
           border-radius: 99px;
@@ -85,6 +85,20 @@ export const StudentLogin = () => {
           width: fit-content;
         }
 
+        .student-feature-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 20px;
+        }
+
+        .student-feature-card {
+          padding: 24px;
+          background: rgba(255,255,255,0.03);
+          border: 1px solid rgba(255,255,255,0.1);
+          border-radius: 20px;
+          backdrop-filter: blur(10px);
+        }
+
         @media (max-width: 1024px) {
           .instructor-nav {
             position: relative;
@@ -92,42 +106,39 @@ export const StudentLogin = () => {
             margin-bottom: 24px;
             text-align: center;
           }
-          .split-left {
-            padding: 60px 24px 40px;
-          }
-          .split-left h1 {
-            font-size: 2.25rem !important;
-          }
+          .split-left { padding: 60px 24px 40px; }
+          .split-left h1 { font-size: 2.25rem !important; }
+          .student-feature-grid { display: none; }
         }
       `}</style>
-      
+
       {/* LEFT COLUMN */}
       <div className="split-left">
-        <div className="deco-blob desktop-only" style={{ top: '-100px', right: '-100px', background: 'radial-gradient(circle, rgba(59, 130, 246, 0.2) 0%, transparent 70%)' }}></div>
-        <div className="deco-blob desktop-only" style={{ bottom: '-150px', left: '-50px', background: 'radial-gradient(circle, rgba(16, 185, 129, 0.1) 0%, transparent 70%)' }}></div>
-        
+        <div className="deco-blob desktop-only" style={{ top: '-100px', right: '-100px', background: 'radial-gradient(circle, rgba(59,130,246,0.2) 0%, transparent 70%)' }}></div>
+        <div className="deco-blob desktop-only" style={{ bottom: '-150px', left: '-50px', background: 'radial-gradient(circle, rgba(16,185,129,0.1) 0%, transparent 70%)' }}></div>
+
         <div className="left-content" style={{ display: 'flex', flexDirection: 'column' }}>
-          <div className="glass-badge" style={{ marginBottom: '24px' }}>Student Portal V2.0</div>
-          
+          <div className="glass-badge" style={{ marginBottom: '24px' }}>Student Portal — Powered by Firebase</div>
+
           <h1 style={{ fontSize: '3.5rem', lineHeight: '1.1', fontWeight: '800', marginBottom: '16px' }}>
-            Unlock Your <br /> 
+            Unlock Your <br />
             <span style={{ color: '#60a5fa' }}>Potential Today</span>
           </h1>
 
           <p style={{ fontSize: '1.1rem', color: '#94a3b8', marginBottom: '32px', maxWidth: '440px' }}>
-            Access top-tier educational materials, take assessments, and track your learning journey.
+            Access top-tier educational materials, take assessments, and track your learning journey — from any device.
           </p>
 
-          <div className="desktop-only" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-            <div style={{ padding: '24px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '20px', backdropFilter: 'blur(10px)' }}>
-              <div style={{ fontSize: '1.5rem', marginBottom: '4px' }}>📖</div>
-              <p style={{ fontSize: '0.9rem', fontWeight: '700', marginBottom: '4px' }}>Rich Content</p>
-              <p style={{ fontSize: '0.75rem', color: '#64748b' }}>Curated study</p>
+          <div className="student-feature-grid">
+            <div className="student-feature-card">
+              <div style={{ fontSize: '1.5rem', marginBottom: '4px' }}>📱</div>
+              <p style={{ fontSize: '0.9rem', fontWeight: '700', marginBottom: '4px' }}>Any Device</p>
+              <p style={{ fontSize: '0.75rem', color: '#64748b' }}>Mobile & desktop</p>
             </div>
-            <div style={{ padding: '24px', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '20px', backdropFilter: 'blur(10px)' }}>
+            <div className="student-feature-card">
               <div style={{ fontSize: '1.5rem', marginBottom: '4px' }}>📈</div>
-              <p style={{ fontSize: '0.9rem', fontWeight: '700', marginBottom: '4px' }}>Growth Tracking</p>
-              <p style={{ fontSize: '0.75rem', color: '#64748b' }}>Visualize progress</p>
+              <p style={{ fontSize: '0.9rem', fontWeight: '700', marginBottom: '4px' }}>Track Progress</p>
+              <p style={{ fontSize: '0.75rem', color: '#64748b' }}>Real-time results</p>
             </div>
           </div>
         </div>
@@ -143,50 +154,61 @@ export const StudentLogin = () => {
         <div className="login-card">
           <div style={{ textAlign: 'center', marginBottom: '40px' }}>
             <div style={{ display: 'inline-flex', marginBottom: '20px' }}>
-               <img src="/sarah-profile.jpg" alt="Sarah Abdelwahab" style={{ width: '80px', height: '120px', borderRadius: '16px', objectFit: 'cover', boxShadow: '0 8px 16px rgba(0,0,0,0.1)' }} />
+              <img
+                src="/sarah-profile.jpg"
+                alt="Sarah Abdelwahab"
+                style={{ width: '80px', height: '120px', borderRadius: '16px', objectFit: 'cover', boxShadow: '0 8px 16px rgba(0,0,0,0.1)' }}
+              />
             </div>
             <h2 style={{ fontSize: '1.75rem', fontWeight: '800', color: 'var(--primary)', marginBottom: '4px' }}>
               Student Portal
             </h2>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>
-              Sign in to your learning account
+              Sign in with your username and password
             </p>
           </div>
 
           <form onSubmit={handleSubmit}>
             <div className="form-group" style={{ marginBottom: '20px' }}>
-              <label className="form-label-premium" htmlFor="username">Username</label>
+              <label className="form-label-premium" htmlFor="student-username">Username</label>
               <input
-                id="username"
+                id="student-username"
                 className="form-input"
                 type="text"
                 placeholder="Enter your student username"
                 value={username}
                 onChange={e => { setUsername(e.target.value); setError('') }}
-                required 
+                required
                 autoFocus
+                autoComplete="username"
                 style={{ background: '#f8fafc' }}
               />
             </div>
 
             <div className="form-group" style={{ marginBottom: '24px' }}>
-              <label className="form-label-premium" htmlFor="password">Password</label>
+              <label className="form-label-premium" htmlFor="student-password">Password</label>
               <div style={{ position: 'relative' }}>
                 <input
-                  id="password"
+                  id="student-password"
                   className="form-input"
                   type={showPass ? 'text' : 'password'}
                   placeholder="Enter your password"
                   value={password}
                   onChange={e => { setPassword(e.target.value); setError('') }}
                   style={{ paddingRight: '48px', background: '#f8fafc' }}
+                  autoComplete="current-password"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPass(v => !v)}
                   tabIndex="-1"
-                  style={{ position: 'absolute', right: '12px', top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', cursor: 'pointer', fontSize: '18px', color: '#94a3b8', padding: '4px' }}
+                  style={{
+                    position: 'absolute', right: '12px', top: '50%',
+                    transform: 'translateY(-50%)', background: 'none',
+                    border: 'none', cursor: 'pointer', fontSize: '18px',
+                    color: '#94a3b8', padding: '4px'
+                  }}
                 >
                   {showPass ? '🙈' : '👁️'}
                 </button>
@@ -194,15 +216,29 @@ export const StudentLogin = () => {
             </div>
 
             {error && (
-              <div style={{ marginBottom: '24px', padding: '12px', background: 'var(--danger-light)', color: 'var(--danger)', borderRadius: '12px', fontSize: '0.85rem', fontWeight: '600', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{
+                marginBottom: '24px', padding: '12px',
+                background: 'var(--danger-light)', color: 'var(--danger)',
+                borderRadius: '12px', fontSize: '0.85rem', fontWeight: '600',
+                display: 'flex', alignItems: 'center', gap: '8px'
+              }}>
                 <span>⚠️</span> {error}
               </div>
             )}
-            
-            <button type="submit" className="btn btn-primary" style={{ width: '100%', height: '52px' }} disabled={loading || !username || !password}>
-              {loading ? 'Entering Portal...' : 'Sign In to Learn'}
+
+            <button
+              type="submit"
+              className="btn btn-primary"
+              style={{ width: '100%', height: '52px' }}
+              disabled={loading || !username || !password}
+            >
+              {loading ? 'Signing In...' : 'Sign In to Learn'}
             </button>
           </form>
+
+          <p style={{ textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '20px', lineHeight: '1.5' }}>
+            Don't have an account? Ask your teacher to create one for you.
+          </p>
         </div>
       </div>
     </div>

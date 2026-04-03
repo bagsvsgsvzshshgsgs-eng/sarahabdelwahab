@@ -8,11 +8,30 @@ export const StudentHome = () => {
   const [exams, setExams] = useState([])
   const [results, setResults] = useState([])
 
-  useEffect(() => {
-    if (user) {
-      setExams(getPublished())
-      setResults(getResultsByStudent(user.id))
+  const [loading, setLoading] = useState(true)
+
+  const loadData = async () => {
+    if (!user) return
+    setLoading(true)
+    try {
+      const allPublished = await getPublished()
+      const myResults = await getResultsByStudent(user.id)
+      
+      // Filter by Grade Level
+      // Show exams targeted to 'All' or students matching the specific grade
+      const filteredExams = allPublished.filter(hw => 
+        hw.targetGrade === 'All' || hw.targetGrade === (user.grade || 'All')
+      )
+
+      setExams(filteredExams)
+      setResults(myResults)
+    } finally {
+      setLoading(false)
     }
+  }
+
+  useEffect(() => {
+    loadData()
   }, [user])
 
   // Figure out which exams are completed vs pending

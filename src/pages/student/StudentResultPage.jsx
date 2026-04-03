@@ -8,18 +8,32 @@ export const StudentResultPage = () => {
   const [result, setResult] = useState(null)
   const [homework, setHomework] = useState(null)
 
+  const [loading, setLoading] = useState(true)
+
   useEffect(() => {
-    const res = findResult(resultId)
-    
-    if (res) {
-      setResult(res)
-      setHomework(findHomework(res.homeworkId))
-    } else {
-      navigate('/student/home')
-    }
+    (async () => {
+      setLoading(true)
+      const res = await findResult(resultId)
+      
+      if (res) {
+        setResult(res)
+        const hw = await findHomework(res.homeworkId)
+        setHomework(hw)
+      } else {
+        navigate('/student/home')
+      }
+      setLoading(false)
+    })()
   }, [resultId, navigate])
 
-  if (!result || !homework) return <div>Loading...</div>
+  if (loading || !result || !homework) {
+    return (
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', flexDirection: 'column', gap: '20px' }}>
+        <div className="avatar" style={{ width: '60px', height: '60px', borderRadius: '15px' }}>📈</div>
+        <p style={{ fontWeight: '800', color: 'var(--primary)' }}>GENERATING PERFORMANCE REPORT...</p>
+      </div>
+    )
+  }
 
   const passed = result.percentage >= 60
   
